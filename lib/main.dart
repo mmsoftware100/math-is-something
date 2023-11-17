@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:math';
 
 void main() {
   runApp(MaterialApp(
@@ -21,7 +22,10 @@ class _AnimatedArcState extends State<AnimatedArc>
   late AnimationController _controller;
   late Animation<double> _sweepAngleTween;
 
-  int secForLoop = 30;
+  late AnimationController _controllerSec;
+  late Animation<double> _sweepAngleTweenSec;
+
+  int secForLoop = 5;
 
   @override
   void initState() {
@@ -36,8 +40,15 @@ class _AnimatedArcState extends State<AnimatedArc>
       vsync: this,
     );
 
+
+    _controllerSec = AnimationController(
+      duration: Duration(seconds: secForLoop * 2),
+      vsync: this,
+    );
+
     // Define a tween for the sweep angle of the arc
     _sweepAngleTween = Tween<double>(begin: 0, end: 360).animate(_controller);
+    _sweepAngleTweenSec = Tween<double>(begin: 0, end: 360).animate(_controllerSec);
 
     _controller.addStatusListener((status) {
       if(status == AnimationStatus.completed){
@@ -99,8 +110,15 @@ class MyArcPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    Offset center = Offset(size.width / 2, size.height / 2);
+    double xCenter = size.width / 2;
+    double yCenter = size.height / 2;
+    Offset center = Offset(xCenter, yCenter);
     double radius = 50.0;
+    // Angle in radians
+    double startAngleInRadians = 0;
+    double angleInRadians = sweepAngle * (pi / 180); //  pi / sweepAngle; // Replace this with the desired angle
+    // ဒီ angle က သီးသန့် လုပ်မှ ရမယ်။ ပထမ တစ်ခုကို မူတည်လို့မရ
+    double nextAngleInRadians = (sweepAngle/ 3 ) * (pi / 180); //  pi / sweepAngle; // Replace this with the desired angle
 
     Paint paint = Paint()
       ..color = Colors.blue
@@ -110,15 +128,35 @@ class MyArcPainter extends CustomPainter {
     // Draw the arc with the animated sweep angle
     canvas.drawArc(
       Rect.fromCircle(center: center, radius: radius),
-      0, // start angle
-      sweepAngle * (3.1415926535897932 / 180), // sweep angle in radians
+      startAngleInRadians, // 0, // start angle
+      angleInRadians, //  sweepAngle * (3.1415926535897932 / 180), // sweep angle in radians
       false,
       paint,
     );
 
-    // draw line from center to current 
-    Offset currentPoint = Offset(dx, dy)
-    canvas.drawLine(center, p2, paint);
+    // draw line from center to current
+    // Center of the circle
+
+
+
+    // Calculate the coordinates of the point on the circle
+
+    double x = xCenter + radius * cos(angleInRadians);
+    double y = yCenter + radius * sin(angleInRadians);
+
+    Offset currentPoint = Offset(x, y);
+    canvas.drawLine(center, currentPoint, paint);
+
+
+
+    // ဒုတိယ Circle ရဲ့ လက်ရှိ Point
+    double nextX = x + radius * cos(nextAngleInRadians);
+    double nextY = y + radius * sin(nextAngleInRadians);
+    Offset nextPoint = Offset(nextX, nextY);
+    canvas.drawLine(currentPoint, nextPoint, paint);
+
+
+    // now we need to draw another line
   }
 
   @override
